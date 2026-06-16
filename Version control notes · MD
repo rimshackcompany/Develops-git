@@ -1,0 +1,625 @@
+# Version Control — Complete Professional Notes
+
+---
+
+## 1. What Is Version Control?
+
+**Version control** (also called source control or revision control) is a system that records every change made to files over time, so you can recall specific versions later, understand who changed what and why, and collaborate with a team without overwriting each other's work.
+
+### Why It Exists — The Problem It Solves
+
+Without version control, teams fall into a set of predictable traps:
+
+- Files named `report_final_v2_REAL_v3_FIXED.docx`
+- Two people editing the same file simultaneously — one overwrites the other
+- No record of why a change was made, or who made it
+- No way to undo a mistake once the file is saved
+- Fear of experimenting, because there is nothing to fall back on
+
+Version control eliminates every one of these problems.
+
+### Core Benefits
+
+| Benefit | What It Means in Practice |
+|--------|--------------------------|
+| **Full history** | Every saved state of the project is accessible — revert any file to any point |
+| **Collaboration** | Multiple developers work on the same codebase without blocking each other |
+| **Accountability** | Every change is stamped with who made it, when, and why |
+| **Experimentation** | Try new ideas in isolation; discard them with zero cost if they fail |
+| **Disaster recovery** | Even if your machine fails, the full project history lives on the server |
+
+---
+
+## 2. Types of Version Control Systems
+
+### 2a. Local Version Control
+
+Tracks changes only on a single machine using a simple database. No collaboration, no remote backup.
+
+**Example:** RCS (Revision Control System — 1980s)
+
+**Limitation:** Cannot support teams; the history exists on one computer only.
+
+---
+
+### 2b. Centralized Version Control (CVCS)
+
+A single central server holds all versioned files. Developers check out files from that server.
+
+**Examples:** CVS, Subversion (SVN), Perforce
+
+**Pros:**
+- Simple mental model — one truth, one server
+- Fine-grained access control at the file level
+
+**Cons:**
+- Single point of failure — if the server goes down, nobody can collaborate or save versions
+- Requires network access to commit
+- Slow on large projects
+
+---
+
+### 2c. Distributed Version Control (DVCS)
+
+Every developer has a **complete copy** of the full repository history on their local machine — not just a snapshot of the current state.
+
+**Examples:** **Git**, Mercurial, Bazaar
+
+**Pros:**
+- No single point of failure — every clone is a full backup
+- Work offline; commit without network access
+- Fast operations — most are local
+- Multiple workflows become possible (forks, feature branches, etc.)
+
+**Cons:**
+- Slightly more complex mental model for beginners
+- Larger initial clone size (full history downloaded)
+
+> **Git is a DVCS.** This is the dominant model in professional software development today.
+
+---
+
+## 3. Git — The Industry Standard
+
+### What Is Git?
+
+Git is a **free, open-source distributed version control system** created by Linus Torvalds in 2005 to manage the Linux kernel source code. It is now used by virtually every professional software team in the world.
+
+**Key characteristics:**
+- Distributed — every developer has the full history
+- Fast — nearly all operations are local
+- Branching is cheap and instant
+- Data integrity — every snapshot is identified by a cryptographic hash (SHA-1)
+- Non-destructive by design — it is very hard to permanently lose committed data
+
+---
+
+## 4. Core Git Concepts
+
+Understanding these concepts is essential before running any commands.
+
+### 4a. Repository (Repo)
+
+A **repository** is the project folder that Git is tracking. It contains your files plus a hidden `.git/` directory which is Git's internal database — storing every version of every file ever committed.
+
+```
+my-project/
+├── .git/          ← Git's database (do not touch manually)
+├── src/
+├── README.md
+└── package.json
+```
+
+> If you delete `.git/`, you lose all history but keep your files.
+
+---
+
+### 4b. Working Directory
+
+The **working directory** is what you see in your file system — the actual files you edit. Changes here are "unstaged" until you explicitly add them.
+
+---
+
+### 4c. Staging Area (Index)
+
+The **staging area** is a preparation zone between your working files and the next commit. You select *which* changes to include in your next commit.
+
+Think of it as packing a suitcase: you choose what goes in before you zip it up (commit).
+
+```
+Working Directory  →  git add  →  Staging Area  →  git commit  →  Repository
+```
+
+---
+
+### 4d. Commit
+
+A **commit** is a permanent, named snapshot of your project at a specific moment. Each commit contains:
+
+- A unique SHA-1 identifier (e.g. `a3f9c12`)
+- The author's name and email
+- A timestamp
+- A message describing the change
+- A pointer to its parent commit(s)
+
+Commits form a chain — the **commit history** — which you can navigate, search, and revert at any time.
+
+---
+
+### 4e. Branch
+
+A **branch** is a lightweight, movable pointer to a specific commit. Branches let you develop features or fixes in isolation from the main codebase.
+
+- **`main`** (or `master`) — the stable, production-ready line of development
+- **Feature branches** — isolated branches for individual features or bug fixes
+
+---
+
+### 4f. Remote
+
+A **remote** is a version of your repository hosted on another server (e.g. GitHub, GitLab, Bitbucket). Remotes allow team members to share commits.
+
+The default remote name is `origin`.
+
+---
+
+### 4g. HEAD
+
+`HEAD` is a special pointer that tells Git which commit you are currently "on." It normally points to the tip of your current branch.
+
+---
+
+## 5. The Git Workflow
+
+### Standard Daily Cycle
+
+```
+1. git pull          ← Get latest changes from teammates
+2. Edit your files   ← Do the work
+3. git status        ← See what changed
+4. git add .         ← Stage the changes
+5. git commit -m ""  ← Save a permanent snapshot
+6. git push          ← Upload your commits to the remote
+```
+
+---
+
+## 6. Essential Git Commands
+
+### Initial Setup (Run Once)
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global core.editor "code --wait"   # Set VS Code as default editor
+```
+
+---
+
+### Starting a Repository
+
+| Command | What It Does |
+|---------|-------------|
+| `git init` | Initialise a new Git repo in the current folder |
+| `git clone <url>` | Download a full copy of an existing remote repo (including all history) |
+
+```bash
+# Example: Clone a GitHub repo
+git clone https://github.com/username/project.git
+```
+
+---
+
+### Checking Status & History
+
+| Command | What It Does |
+|---------|-------------|
+| `git status` | Show which files are modified, staged, or untracked |
+| `git log` | Full commit history with author, date, and message |
+| `git log --oneline` | Compact one-line-per-commit view |
+| `git log --oneline --graph` | ASCII branch graph in the terminal |
+| `git diff` | Show unstaged changes line by line |
+| `git diff --staged` | Show staged changes (what will be committed) |
+| `git show <hash>` | Show the full detail of a specific commit |
+
+---
+
+### Staging & Committing
+
+| Command | What It Does |
+|---------|-------------|
+| `git add .` | Stage all changes in the current directory |
+| `git add <file>` | Stage a specific file |
+| `git add -p` | Interactively stage parts of files (hunk by hunk) |
+| `git commit -m "message"` | Commit staged changes with an inline message |
+| `git commit` | Open the editor to write a multi-line commit message |
+| `git commit --amend` | Edit the most recent commit (message or content) |
+
+---
+
+### Pushing & Pulling
+
+| Command | What It Does |
+|---------|-------------|
+| `git push` | Upload local commits to the remote |
+| `git push -u origin main` | First push — sets tracking so future `git push` works alone |
+| `git pull` | Fetch + merge remote changes into your current branch |
+| `git fetch` | Download remote changes WITHOUT merging (safe to inspect first) |
+| `git remote -v` | List configured remote URLs |
+| `git remote add origin <url>` | Connect a local repo to a remote |
+
+---
+
+### Branching
+
+| Command | What It Does |
+|---------|-------------|
+| `git branch` | List all local branches |
+| `git branch -a` | List all branches (local + remote) |
+| `git branch <name>` | Create a new branch (stay on current branch) |
+| `git checkout <branch>` | Switch to a branch |
+| `git checkout -b <name>` | Create AND switch to a new branch (shortcut) |
+| `git switch <branch>` | Modern alternative to `git checkout` for switching |
+| `git switch -c <name>` | Modern alternative: create and switch |
+| `git branch -d <name>` | Delete a branch (safe — only if fully merged) |
+| `git branch -D <name>` | Force delete a branch (even if not merged) |
+
+---
+
+### Merging
+
+| Command | What It Does |
+|---------|-------------|
+| `git merge <branch>` | Merge the named branch into your current branch |
+| `git merge --no-ff <branch>` | Force a merge commit even if fast-forward is possible |
+| `git merge --abort` | Cancel a merge mid-conflict |
+
+**Types of merge:**
+
+- **Fast-forward merge** — No diverging work; Git simply moves the branch pointer forward. No merge commit is created.
+- **3-way merge** — Both branches have diverged; Git creates a merge commit combining the two histories.
+
+---
+
+### Undoing Changes
+
+| Command | What It Does | Safe? |
+|---------|-------------|-------|
+| `git revert <hash>` | Creates a new commit that undoes the specified commit | ✅ Yes — keeps history |
+| `git reset HEAD <file>` | Unstage a file (keep changes in working dir) | ✅ Yes |
+| `git checkout -- <file>` | Discard working directory changes (irreversible) | ⚠️ Destructive |
+| `git reset --soft HEAD~1` | Undo last commit, keep changes staged | ⚠️ Rewrites history |
+| `git reset --hard HEAD~1` | Undo last commit AND discard changes entirely | ❌ Dangerous |
+
+> **Rule of thumb:** Use `git revert` on shared branches. Use `git reset` only on your own local/private branch.
+
+---
+
+### Stashing
+
+| Command | What It Does |
+|---------|-------------|
+| `git stash` | Temporarily shelve uncommitted changes (clean working dir) |
+| `git stash pop` | Restore the most recent stash and remove it from the stash list |
+| `git stash list` | Show all stashed states |
+| `git stash apply stash@{2}` | Apply a specific stash without removing it |
+| `git stash drop stash@{0}` | Delete a specific stash |
+
+**Use case:** You are mid-feature and need to pull in hotfix changes without committing unfinished work.
+
+---
+
+### Tagging
+
+| Command | What It Does |
+|---------|-------------|
+| `git tag v1.0.0` | Create a lightweight tag on the current commit |
+| `git tag -a v1.0.0 -m "Release 1.0.0"` | Create an annotated tag with a message |
+| `git push origin v1.0.0` | Push a specific tag to the remote |
+| `git push origin --tags` | Push all tags |
+
+---
+
+### Advanced / Power Commands
+
+| Command | What It Does |
+|---------|-------------|
+| `git rebase <branch>` | Move your branch's commits on top of another branch (rewrites history) |
+| `git cherry-pick <hash>` | Apply a specific commit from another branch onto the current branch |
+| `git bisect start` | Begin a binary search to find the commit that introduced a bug |
+| `git blame <file>` | Show who last modified each line of a file, and when |
+| `git reflog` | Log of everything HEAD has pointed to — your safety net for lost commits |
+| `git clean -fd` | Remove untracked files and directories |
+
+---
+
+## 7. Branching Strategies
+
+### 7a. Feature Branching (Most Common)
+
+Every new feature or bug fix gets its own branch. When complete and reviewed, it is merged to `main`.
+
+```
+main
+ ├── feature/user-auth
+ ├── feature/payment-gateway
+ └── bugfix/login-null-pointer
+```
+
+---
+
+### 7b. Gitflow
+
+A formal model with defined branch types. Best for products with scheduled releases.
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production code only |
+| `develop` | Integration branch for completed features |
+| `feature/*` | New features (branch from `develop`) |
+| `release/*` | Release preparation (branch from `develop`) |
+| `hotfix/*` | Emergency production fixes (branch from `main`) |
+
+---
+
+### 7c. Trunk-Based Development
+
+All developers commit to `main` (the "trunk") directly or via very short-lived branches (less than a day). Relies on feature flags to hide unfinished work.
+
+Best for: Teams with strong automated testing and CI/CD pipelines.
+
+---
+
+## 8. Remote Collaboration Workflow
+
+### The Pull Request / Merge Request Pattern
+
+A **Pull Request (GitHub)** or **Merge Request (GitLab)** is a formal request to merge a feature branch into `main`. It is the standard mechanism for:
+
+1. Notifying the team that work is ready
+2. Triggering automated tests
+3. Code review and discussion
+4. Approval before merging
+
+**Typical flow:**
+
+```
+Developer:   git checkout -b feature/login
+             # ... work ...
+             git push -u origin feature/login
+
+GitHub/Lab:  Open Pull Request: feature/login → main
+             Team reviews, requests changes, approves
+
+CI/CD:       Automated tests run on the PR branch
+
+Maintainer:  Merges the PR → main is updated
+```
+
+---
+
+## 9. The .gitignore File
+
+`.gitignore` tells Git which files to never track. Place it in the root of your repository.
+
+**What to always ignore:**
+
+```gitignore
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+*.class
+*.pyc
+
+# Environment & secrets
+.env
+.env.local
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.idea/
+.vscode/
+*.suo
+```
+
+> **Critical rule:** Never commit secrets, passwords, or API keys. Once pushed to a remote, they are compromised — even if deleted later, the history retains them.
+
+Use [gitignore.io](https://gitignore.io) to generate a `.gitignore` tailored to your language and framework.
+
+---
+
+## 10. Best Practices
+
+### Write Meaningful Commit Messages
+
+A commit message should explain **what** changed and **why** — not just what the code does.
+
+**Recommended format (Conventional Commits):**
+
+```
+type(scope): short summary in imperative mood (≤72 chars)
+
+Optional body — explain the motivation and context.
+What problem does this solve? What trade-offs were made?
+```
+
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`, `perf`
+
+| ✅ Good | ❌ Bad |
+|--------|-------|
+| `fix: resolve null pointer in user auth on login` | `fix` |
+| `feat(payments): add Stripe webhook handler` | `stuff` |
+| `refactor: extract validation logic to service layer` | `WIP` |
+| `docs: update API auth examples in README` | `changes` |
+
+---
+
+### Commit Early, Commit Often
+
+- Each commit should do **one logical thing**
+- Commit at natural stopping points, not just "when done"
+- Small commits are easier to review, revert, and understand
+
+---
+
+### Never Force Push to a Shared Branch
+
+`git push --force` rewrites history on the remote. On a shared branch this destroys teammates' work and creates chaos.
+
+- ✅ `git push --force` on your own private branch only
+- ✅ `git push --force-with-lease` — safer: aborts if someone else pushed since your last fetch
+- ❌ Never on `main`, `develop`, or any branch others depend on
+
+---
+
+### Pull Before You Push
+
+Always sync with the latest remote state before pushing your commits. This minimises merge conflicts.
+
+```bash
+git pull
+# Resolve any conflicts
+git push
+```
+
+---
+
+### Protect the Main Branch
+
+Configure your platform (GitHub/GitLab) to:
+- Require a pull request before merging
+- Require at least one code review approval
+- Require CI tests to pass before merge
+- Prevent direct pushes to `main`
+
+---
+
+### Delete Branches After Merging
+
+Stale branches are noise. After a feature branch is merged, delete it:
+
+```bash
+git branch -d feature/login          # local
+git push origin --delete feature/login  # remote
+```
+
+---
+
+## 11. Git in the CI/CD Pipeline
+
+Version control is the **trigger** for every automated step in a modern software pipeline.
+
+```
+Developer
+  git push
+     ↓
+Remote Repo (GitHub/GitLab)
+  Webhook fires
+     ↓
+CI Server (GitHub Actions / Jenkins / GitLab CI)
+  ├── Lint & code quality checks
+  ├── Unit tests
+  ├── Integration tests
+  └── Build artefact (Docker image, binary, etc.)
+     ↓
+CD Pipeline
+  ├── Deploy to staging
+  └── Deploy to production (on merge to main)
+```
+
+**Key principle:** Every commit to `main` should be deployable. This is enforced by automated tests that run on every push and every pull request.
+
+Without version control, there is no event for automation to listen to. Git is the foundation that makes CI/CD possible.
+
+---
+
+## 12. Quick Reference — Command Cheatsheet
+
+### Setup
+
+```bash
+git config --global user.name "Name"
+git config --global user.email "email@example.com"
+git init
+git clone <url>
+```
+
+### Daily Workflow
+
+```bash
+git status
+git add .
+git add <file>
+git commit -m "feat: add feature"
+git push
+git pull
+```
+
+### Branching
+
+```bash
+git branch                   # list branches
+git checkout -b feature/x    # create and switch
+git switch -c feature/x      # modern equivalent
+git merge feature/x          # merge into current branch
+git branch -d feature/x      # delete after merge
+```
+
+### Undo
+
+```bash
+git revert <hash>            # safe undo (adds a commit)
+git stash                    # shelve uncommitted work
+git stash pop                # restore it
+git reset HEAD <file>        # unstage a file
+```
+
+### History
+
+```bash
+git log --oneline --graph    # visual branch history
+git diff                     # unstaged changes
+git diff --staged            # staged changes
+git blame <file>             # who changed each line
+git reflog                   # full history of HEAD movements
+```
+
+---
+
+## 13. Glossary
+
+| Term | Definition |
+|------|-----------|
+| **Repository** | A project folder tracked by Git, including all history |
+| **Commit** | A permanent snapshot of staged changes at a point in time |
+| **Branch** | A named pointer to a series of commits; enables parallel development |
+| **HEAD** | Pointer to the commit you are currently working from |
+| **Remote** | A copy of the repo hosted on a server (e.g. GitHub) |
+| **Origin** | The default name for the primary remote |
+| **Clone** | A full local copy of a remote repository |
+| **Staging Area** | The intermediate zone where changes are prepared before committing |
+| **Merge** | Combining two branches into one |
+| **Rebase** | Moving a branch's base commit to another point (rewrites history) |
+| **Fast-forward** | A merge where no new merge commit is created — the pointer simply moves |
+| **Conflict** | Occurs when two branches change the same lines; must be resolved manually |
+| **Pull Request** | A request (on GitHub) to merge a branch into another, enabling code review |
+| **Stash** | A temporary store for uncommitted changes |
+| **Tag** | A permanent label for a specific commit — used for releases |
+| **gitignore** | A file listing paths Git should never track |
+| **SHA-1** | The cryptographic hash used to uniquely identify each commit |
+
+---
+
+*These notes cover version control fundamentals, all major Git commands, branching strategies, best practices, and CI/CD integration — everything needed for professional daily use.*
